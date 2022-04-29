@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">HandShankApplication</string>
+    <string name="debug">Debug</string>
 </resources>
