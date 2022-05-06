@@ -6,7 +6,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import com.android.handshankapplication.fragment.ByteProtocolConstant;
-import com.android.handshankapplication.fragment.MsgSender;
 
 
 public class ControlEventManager {

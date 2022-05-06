@@ -2,8 +2,6 @@ package com.android.handshankapplication;
 
 import android.content.Context;
 
-import com.android.handshankapplication.fragment.MsgSender;
-
 public class SerialSender implements MsgSender, Ch340Helper.OnMessageReceiverListener {
     private Ch340Helper helper;
 

@@ -2,6 +2,10 @@ package com.android.handshankapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbInterface;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.view.InputDevice;
 import android.view.KeyEvent;

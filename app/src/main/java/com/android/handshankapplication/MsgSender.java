@@ -1,4 +1,4 @@
-package com.android.handshankapplication.fragment;
+package com.android.handshankapplication;
 
 public interface MsgSender {
     void sendMsg(byte[] msg);
