@@ -21,6 +21,11 @@ public class JoystickView extends View {
     private boolean canTouch = true;
     private float startX;
     private float startY;
+    private JoystickActionListener listener;
+
+    public void setListener(JoystickActionListener listener) {
+        this.listener = listener;
+    }
 
     public float getCurrentX() {
         return currentX;
@@ -30,6 +35,7 @@ public class JoystickView extends View {
         if (currentX >= -1 && currentX <= 1) {
             this.currentX = currentX;
         }
+        invalidate();
     }
 
     public float getCurrentY() {
@@ -40,6 +46,7 @@ public class JoystickView extends View {
         if (currentY >= -1 && currentY <= 1) {
             this.currentY = currentY;
         }
+        invalidate();
     }
 
     public JoystickView(Context context) {
@@ -77,11 +84,26 @@ public class JoystickView extends View {
                 case MotionEvent.ACTION_MOVE:
                     currentX = (event.getX() - startX) / radius;
                     currentY = (event.getY() - startY) / radius;
+                    if (currentX > 1) {
+                        currentX = 1;
+                    }
+                    if (currentX < -1) {
+                        currentX = -1;
+                    }
+                    if (currentY > 1) {
+                        currentY = 1;
+                    }
+                    if (currentY < -1) {
+                        currentY = -1;
+                    }
                     break;
                 case MotionEvent.ACTION_UP:
                     currentX = 0;
                     currentY = 0;
                     break;
+            }
+            if (this.listener != null) {
+                this.listener.onJoystickAction(currentX, currentY);
             }
             invalidate();
             return true;
@@ -126,5 +148,9 @@ public class JoystickView extends View {
             canvas.drawCircle(oX + x, oY + y, radius / 8, paint);
         }
 
+    }
+
+    public interface JoystickActionListener {
+        void onJoystickAction(float currentX, float currentY);
     }
 }
