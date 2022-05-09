@@ -1,6 +1,9 @@
 package com.android.handshankapplication.fragment;
 
 public class ByteProtocolConstant {
+
+    public static final byte HEAD = 0x15;
+
     public static class EventType {
         public static final int TYPE_KEY_DOWN = 0;
         public static final int TYPE_KEY_UP = 1;
@@ -22,5 +25,11 @@ public class ByteProtocolConstant {
         public static final int KEY_JOYSTICK = 4;
         public static final int KEY_LEFT_SHOULDER = 5;
         public static final int KEY_RIGHT_SHOULDER = 6;
+    }
+
+    public static class DataType {
+        public static final byte IMAGE = 0x02;
+
+        public static final byte VIDEO = 0x04;
     }
 }

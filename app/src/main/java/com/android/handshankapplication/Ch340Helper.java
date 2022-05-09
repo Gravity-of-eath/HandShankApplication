@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.android.handshankapplication.fragment.ByteProtocolConstant;
+
 import java.nio.charset.Charset;
 
 import cn.wch.ch34xuartdriver.CH34xUARTDriver;
@@ -135,17 +137,29 @@ public class Ch340Helper {
 
     private class readThread extends Thread {
         public void run() {
-            byte[] buffer = new byte[2048];
+            byte[] head = new byte[1];
             while (true) {
-                int length = ch34xUARTDriver.ReadData(buffer, 2048);
-                if (length > 0) {
-                    byte[] recvb = new byte[length];
-                    System.arraycopy(buffer, 0, recvb, 0, length);
-                    if (null != listener) {
-                        listener.onMessageReceived(recvb);
+                int length = ch34xUARTDriver.ReadData(head, 1);
+                if (length > 0 && head[0] == ByteProtocolConstant.HEAD) {
+                    byte[] data = new byte[2];
+                    byte[] body = new byte[data[1]];
+                    int bodyLength = ch34xUARTDriver.ReadData(body, data[1]);
+                    if (bodyLength == data[1]) {
+                        if (data[0] == ByteProtocolConstant.DataType.IMAGE) {
+                            if (null != listener) {
+                                listener.onImageMessageReceived(body);
+                            }
+                        } else if (data[0] == ByteProtocolConstant.DataType.VIDEO) {
+
+                        } else {
+                        }
+                        Log.e(TAG, "readThread===bodyLength =  " + bodyLength);
+                    } else {
+
                     }
-                    String recv = new String(recvb, Charset.forName("ascii"));        //以字符串形式输出
-                    Log.e(TAG, "readThread====  " + recv);
+
+                } else {
+                    continue;
                 }
             }
         }
@@ -159,7 +173,7 @@ public class Ch340Helper {
     }
 
     public interface OnMessageReceiverListener {
-        void onMessageReceived(byte[] msg);
+        void onImageMessageReceived(byte[] msg);
     }
 
 }
