@@ -1,4 +1,4 @@
-package com.android.handshankapplication;
+package com.android.handshankapplication.sender;
 
 import android.content.Context;
 import android.hardware.usb.UsbManager;

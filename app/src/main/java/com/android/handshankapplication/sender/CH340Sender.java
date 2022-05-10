@@ -1,11 +1,13 @@
-package com.android.handshankapplication;
+package com.android.handshankapplication.sender;
 
 import android.content.Context;
 
-public class SerialSender implements MsgSender, Ch340Helper.OnMessageReceiverListener {
+import com.android.handshankapplication.MsgSender;
+
+public class CH340Sender implements MsgSender, Ch340Helper.OnMessageReceiverListener {
     private Ch340Helper helper;
 
-    public SerialSender(Context context) {
+    public CH340Sender(Context context) {
         helper = new Ch340Helper(context);
         helper.setListener(this);
     }
@@ -21,7 +23,7 @@ public class SerialSender implements MsgSender, Ch340Helper.OnMessageReceiverLis
     }
 
     @Override
-    public void onMessageReceived(byte[] msg) {
+    public void onImageMessageReceived(byte[] msg) {
 
     }
 }
