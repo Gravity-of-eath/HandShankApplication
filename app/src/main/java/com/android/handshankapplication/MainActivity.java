@@ -19,7 +19,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.TextView;
 
+import com.android.handshankapplication.fragment.ByteProtocolConstant;
 import com.android.handshankapplication.sender.DeviceFinder;
+import com.android.handshankapplication.view.JoystickView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +30,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements OnDataAvailableListener {
     ArrayList list = new ArrayList<Integer>();
-    ControlEventManager manager = new ControlEventManager();
+    ControlEventManager manager = ControlEventManager.getInstance();
     public static final String TAG = "MainActivity";
     private UsbManager usbmanager;
     private SurfaceView screen;
@@ -41,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements OnDataAvailableLi
         setContentView(R.layout.activity_main);
         usbmanager = (UsbManager) getSystemService(Context.USB_SERVICE);
         deviceFinder = new DeviceFinder(this, this);
-        manager.setSender(deviceFinder);
+
         init();
         screen = findViewById(R.id.screen);
         screen.getHolder().addCallback(new SurfaceHolder.Callback() {
