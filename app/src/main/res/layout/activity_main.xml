@@ -21,4 +21,9 @@
         android:textColor="@color/black"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <SurfaceView
+        android:id="@+id/screen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

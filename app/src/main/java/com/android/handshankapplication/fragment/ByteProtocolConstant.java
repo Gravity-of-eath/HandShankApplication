@@ -2,7 +2,7 @@ package com.android.handshankapplication.fragment;
 
 public class ByteProtocolConstant {
 
-    public static final byte HEAD = 0x15;
+    public static final byte HEAD = 0x0f;
 
     public static class EventType {
         public static final int TYPE_KEY_DOWN = 0;

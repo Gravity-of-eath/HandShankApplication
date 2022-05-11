@@ -19,7 +19,7 @@ public class Ch340Helper {
     private Context context;
     private CH34xUARTDriver ch34xUARTDriver;
     OnMessageReceiverListener listener;
-    private int baudRate = 9600;
+    private int baudRate = 115200;
     private byte stopBit = 1;
     private byte dataBit = 8;
     private byte parity = 0;
@@ -94,7 +94,7 @@ public class Ch340Helper {
             return -1;
         }
         if (!isConfiged) {
-            Toast.makeText(context, "no configed !", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "not configed !", Toast.LENGTH_SHORT).show();
             return -1;
         }
         int retval = ch34xUARTDriver.WriteData(bytes, bytes.length);//写数据，第一个参数为需要发送的字节数组，第二个参数为需要发送的字节长度，返回实际发送的字节长度
@@ -139,26 +139,41 @@ public class Ch340Helper {
         public void run() {
             byte[] head = new byte[1];
             while (true) {
-                int length = ch34xUARTDriver.ReadData(head, 1);
-                if (length > 0 && head[0] == ByteProtocolConstant.HEAD) {
-                    byte[] data = new byte[2];
-                    byte[] body = new byte[data[1]];
-                    int bodyLength = ch34xUARTDriver.ReadData(body, data[1]);
-                    if (bodyLength == data[1]) {
-                        if (data[0] == ByteProtocolConstant.DataType.IMAGE) {
-                            if (null != listener) {
-                                listener.onImageMessageReceived(body);
+                int ret = ch34xUARTDriver.ReadData(head, head.length);
+//                Log.e(TAG, "run: length=" + length);
+//                for (int i = 0; i < head.length; i++) {
+//                    Log.e(TAG, "toHexString=  " + Integer.toHexString(head[i]));
+//                }
+                if (ret == 0) {
+                    Log.e(TAG, "head.length=" + head.length);
+                    if (head[0] == ByteProtocolConstant.HEAD) {
+                        Log.e(TAG, "HEAD macth");
+                        byte[] data = new byte[2];
+                        byte[] body = new byte[data[1]];
+                        int bodyLength = ch34xUARTDriver.ReadData(body, data[1]);
+                        if (bodyLength == data[1]) {
+                            Log.e(TAG, "data.0=" + Integer.toHexString(data[0]));
+                            Log.e(TAG, "data.1=" + Integer.toHexString(data[1]));
+                            if (data[0] == ByteProtocolConstant.DataType.IMAGE) {
+                                Log.d(TAG, "DataType.IMAGE");
+                            } else if (data[0] == ByteProtocolConstant.DataType.VIDEO) {
+                                Log.d(TAG, "DataType.VIDEO");
+                                if (null != listener) {
+                                    listener.onImageMessageReceived(body);
+                                }
+                            } else {
+                                Log.d(TAG, "DataType.other");
                             }
-                        } else if (data[0] == ByteProtocolConstant.DataType.VIDEO) {
-
+                            Log.e(TAG, "readThread===bodyLength =  " + bodyLength);
                         } else {
+                            Log.e(TAG, "bodyLength not yet");
+
                         }
-                        Log.e(TAG, "readThread===bodyLength =  " + bodyLength);
                     } else {
-
+                        Log.e(TAG, "   ByteProtocolConstant.HEAD=" + Integer.toHexString(ByteProtocolConstant.HEAD) + "  head=" + Integer.toHexString(head[0]));
                     }
-
                 } else {
+                    Log.d(TAG, "continue ret=" + ret + "      head=" + Integer.toHexString(head[0]));
                     continue;
                 }
             }
