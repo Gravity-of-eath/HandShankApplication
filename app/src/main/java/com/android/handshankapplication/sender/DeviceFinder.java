@@ -140,33 +140,34 @@ public class DeviceFinder implements OnDataAvailableListener, MsgSender {
             inputStream = usbSerialDevice.getInputStream();
             while (run) {
                 try {
-                    while (inputStream.available() > 0) {
-                        int read = inputStream.read();
-                        if (read == ByteProtocolConstant.HEAD) {
-                            Log.d(TAG, "run: HEAD matching");
-                            while (inputStream.available() > 0) {
-                                int type = inputStream.read();
-                                switch (type) {
-                                    case ByteProtocolConstant.DataType.IMAGE:
-                                        Log.d(TAG, "run: type matching IMAGE");
-                                        break;
-                                    case ByteProtocolConstant.DataType.VIDEO:
-                                        Log.d(TAG, "run: type matching VIDEO");
-                                        int dataLen = inputStream.read();
-                                        Log.d(TAG, "run: dataLen=" + dataLen);
-                                        byte[] bytes = new byte[dataLen];
-                                        int read1 = inputStream.read(bytes, 0, dataLen);
-                                        if (listener != null) {
-                                            listener.onDataAvailable(ByteProtocolConstant.DataType.VIDEO, bytes);
-                                        }
-                                        break;
+//                    while (inputStream.available() > 0) {
+                    int read = inputStream.read();
+                    if (read == ByteProtocolConstant.HEAD) {
+                        Log.d(TAG, "run: HEAD matching");
+//                            while (inputStream.available() > 0) {
+                        int type = inputStream.read();
+                        switch (type) {
+                            case ByteProtocolConstant.DataType.IMAGE:
+                                Log.d(TAG, "run: type matching IMAGE");
+                                break;
+                            case ByteProtocolConstant.DataType.VIDEO:
+                                Log.d(TAG, "run: type matching VIDEO");
+                                int dataLen = inputStream.read();
+                                Log.d(TAG, "run: dataLen=" + dataLen);
+                                byte[] bytes = new byte[dataLen];
+                                int read1 = inputStream.read(bytes, 0, dataLen);
+                                if (listener != null) {
+                                    listener.onDataAvailable(ByteProtocolConstant.DataType.VIDEO, bytes);
                                 }
-
-                            }
+                                break;
                         }
-                    }
 
-                } catch (IOException e) {
+//                            }
+                    }
+//                    }
+                    Log.e(TAG, "run: read=" + read);
+
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 Log.d(TAG, "run: -----------------------------------------------------");
