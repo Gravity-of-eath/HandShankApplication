@@ -51,9 +51,9 @@ public class ScreenFragment extends BaseFragment {
         screen.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
-                Canvas canvas = surfaceHolder.lockCanvas();
-                canvas.drawBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.bg), 0, 0, new Paint());
-                surfaceHolder.unlockCanvasAndPost(canvas);
+//                Canvas canvas = surfaceHolder.lockCanvas();
+//                canvas.drawBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.bg), 0, 0, new Paint());
+//                surfaceHolder.unlockCanvasAndPost(canvas);
             }
 
             @Override

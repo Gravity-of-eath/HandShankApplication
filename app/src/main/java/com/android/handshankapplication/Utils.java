@@ -1,20 +1,49 @@
 package com.android.handshankapplication;
 
 public class Utils {
-    public static int byteArrayToInt(byte[] b) {
-        return b[3] & 0xFF |
-                (b[2] & 0xFF) << 8 |
-                (b[1] & 0xFF) << 16 |
-                (b[0] & 0xFF) << 24;
+    public static int byteArrayToInt(byte[] b, int off) {
+        return b[off + 3] & 0xFF |
+                (b[off + 2] & 0xFF) << 8 |
+                (b[off + 1] & 0xFF) << 16 |
+                (b[off] & 0xFF) << 24;
     }
+//
+//    public static byte[] intToByteArray(int a) {
+//        return new byte[]{
+//                (byte) ((a >> 24) & 0xFF),
+//                (byte) ((a >> 16) & 0xFF),
+//                (byte) ((a >> 8) & 0xFF),
+//                (byte) (a & 0xFF)
+//        };
+//    }
 
-    public static byte[] intToByteArray(int a) {
-        return new byte[]{
-                (byte) ((a >> 24) & 0xFF),
-                (byte) ((a >> 16) & 0xFF),
-                (byte) ((a >> 8) & 0xFF),
-                (byte) (a & 0xFF)
-        };
+//    public static int byteArrayToInt(byte[] bytes) {
+//        int value = 0;
+//        for (int i = 0; i < bytes.length; i++) {
+//            int shift = (bytes.length - 1 - i) * 8;
+//            value = (bytes[i] & 0x000000FF) << shift;
+//        }
+//        return value;
+//
+//    }
+
+
+    /**
+     * int到byte[]
+     *
+     * @param i
+     * @return
+     */
+
+    public static byte[] intToByteArray(int i) {
+        byte[] result = new byte[4];
+        result[0] = (byte) ((i >> 24) & 0xFF);
+        result[1] = (byte) ((i >> 16) & 0xFF);
+        result[2] = (byte) ((i >> 8) & 0xFF);
+        result[3] = (byte) (i & 0xFF);
+
+        return result;
+
     }
 
     public static String byte2hex(byte[] b) {
