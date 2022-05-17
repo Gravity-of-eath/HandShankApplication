@@ -8,42 +8,30 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 
+import com.android.handshankapplication.ByteArrayBuffer;
 import com.android.handshankapplication.ImageDecoder;
 import com.android.handshankapplication.MsgSender;
 import com.android.handshankapplication.OnDataAvailableListener;
 import com.android.handshankapplication.Utils;
-import com.android.handshankapplication.fragment.ByteProtocolConstant;
-import com.felhr.usbserial.CH34xSerialDevice;
 import com.felhr.usbserial.SerialInputStream;
 import com.felhr.usbserial.SerialOutputStream;
 import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DeviceFinder implements MsgSender {
+public class CH340xSerialHelper implements MsgSender {
     public static final String TAG = "DeviceFinder";
     private final int BAUD_RATE = 115200;
     public static final String ACTION_USB_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED";
@@ -67,10 +55,8 @@ public class DeviceFinder implements MsgSender {
                 if (granted) // User accepted our USB connection. Try to open the device as a serial port
                 {
                     UsbDeviceConnection usbDeviceConnection = manager.openDevice(targetDevice);
-                    UsbSerialDevice usbSerialDevice = UsbSerialDevice.createUsbSerialDevice(targetDevice, usbDeviceConnection);
-//                    usbSerialDevice = CH34xSerialDevice.createUsbSerialDevice(targetDevice, usbDeviceConnection);
-//
-                    if (usbSerialDevice.syncOpen()) {
+                    usbSerialDevice = UsbSerialDevice.createUsbSerialDevice(targetDevice, usbDeviceConnection);
+                    if (usbSerialDevice.open()) {
                         usbSerialDevice.setBaudRate(BAUD_RATE);
                         usbSerialDevice.setDataBits(UsbSerialInterface.DATA_BITS_8);
                         usbSerialDevice.setStopBits(UsbSerialInterface.STOP_BITS_1);
@@ -90,7 +76,7 @@ public class DeviceFinder implements MsgSender {
         }
     };
 
-    public DeviceFinder(Context context, OnDataAvailableListener listener) {
+    public CH340xSerialHelper(Context context, OnDataAvailableListener listener) {
         Log.d(TAG, "init  HEAD=" + bytesToHexString(HEAD));
         this.context = context;
         this.listener = listener;
@@ -142,78 +128,82 @@ public class DeviceFinder implements MsgSender {
 
     @Override
     public void sendMsg(byte[] msg) {
-        outputStream.write(msg);
+        usbSerialDevice.write(msg);
     }
 
-    private SerialOutputStream outputStream;
-
-    private class Reader extends Thread {
+    private class Reader extends Thread implements UsbSerialInterface.UsbReadCallback {
         UsbSerialDevice usbSerialDevice;
         OnDataAvailableListener listener;
         private ImageDecoder imageDecoder;
-        //        private final BufferedInputStream bufferedInputStream;
-        private final SerialInputStream inputStream;
+        private ByteArrayBuffer buffer;
+        private FileOutputStream fileOutputStream;
 
         public Reader(UsbSerialDevice usbSerialDevice, OnDataAvailableListener listener) {
             this.usbSerialDevice = usbSerialDevice;
             this.listener = listener;
-            inputStream = usbSerialDevice.getInputStream();
-            inputStream.setTimeout(1000);
-//            bufferedInputStream = new BufferedInputStream(inputStream);
-            outputStream = usbSerialDevice.getOutputStream();
-//            outputStream.setTimeout(9914100);
+            buffer = new ByteArrayBuffer();
+            usbSerialDevice.read(this);
             imageDecoder = new ImageDecoder(listener);
+            File file = new File(context.getCacheDir(), System.currentTimeMillis() + ".bins");
+            try {
+                fileOutputStream = new FileOutputStream(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
         public void run() {
             while (run) {
                 try {
-                    byte[] head = new byte[1];
-                    int read = inputStream.read();
-                    if (read == HEAD[0]) {
-                        Log.d(TAG, "run: HEAD-----finddddddddd");
-                        boolean flag = false;
-                        for (int i = 1; i < HEAD.length; i++) {
-                            byte[] b = new byte[1];
-                            inputStream.mark(HEAD.length);
-                            int i1 = inputStream.read();
-                            if (i1 == HEAD[i]) {
-                                flag = true;
-                            } else {
-                                Log.d(TAG, "run: break i=" + i);
-                                flag = false;
-                                break;
-                            }
-                        }
-                        Log.d(TAG, "run: flag---------- " + flag);
-                        if (flag) {
-                            int available = inputStream.available();
-                            if (available > 4) {
-
-                            }
-                            byte[] bytes = new byte[4];
-                            int ret = inputStream.read(bytes,0,4);
-                            Log.d(TAG, "run: ret ---------- " + ret);
-                            if (ret != -1) {
-                                int dataLens = Utils.byteArrayToInt(bytes, 0);
-                                Log.d(TAG, "run: dataLens ---------- " + dataLens);
-                                if (dataLens > 0) {
-                                    byte[] data = new byte[dataLens];
-                                    inputStream.read(data);
-                                }
-                            }
-                        } else {
-                            inputStream.reset();
-                        }
-                    } else {
-
-                    }
+                    findHead(buffer, HEAD);
+                    int read = buffer.read();
+                    byte[] bytes = new byte[read];
+                    int read1 = buffer.read(bytes);
+                    imageDecoder.add(bytes);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
+
+        @Override
+        public void onReceivedData(byte[] data) {
+            try {
+                fileOutputStream.write(data);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            buffer.put(data);
+        }
+    }
+
+
+    private void findHead(InputStream stream, byte[] mSequence) throws IOException {
+        boolean find = false;
+        while (!find) {
+            byte[] bytes = new byte[1];
+            stream.read(bytes);
+            if (bytes[0] == mSequence[0]) {
+                boolean match = false;
+                for (int i = 1; i < mSequence.length; i++) {
+                    byte[] by = new byte[1];
+                    stream.read(by);
+                    if (by[0] == mSequence[i]) {
+                        match = true;
+                    } else {
+                        bytes = by;
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    find = true;
+                }
+            }
+        }
+
+
     }
 
     private int findSequence(byte[] data, byte[] mSequence) {

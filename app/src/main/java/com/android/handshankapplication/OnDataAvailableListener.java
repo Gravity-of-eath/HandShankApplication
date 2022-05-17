@@ -7,7 +7,7 @@ public interface OnDataAvailableListener {
     }
 
 
-    default void onImageAvailable(int dataType, Bitmap data) {
+    default void onImageAvailable(int index, Bitmap data) {
     }
 
 }
