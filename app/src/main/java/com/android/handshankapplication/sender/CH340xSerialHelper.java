@@ -23,6 +23,8 @@ import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -33,11 +35,11 @@ import java.util.Map;
 
 public class CH340xSerialHelper implements MsgSender {
     public static final String TAG = "DeviceFinder";
-    private final int BAUD_RATE = 115200;
+    //    private final int BAUD_RATE = 115200;
+    private final int BAUD_RATE = 921600;
     public static final String ACTION_USB_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED";
     public static final String ACTION_USB_DETACHED = "android.hardware.usb.action.USB_DEVICE_DETACHED";
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
-    public static final byte[] HEAD = "-1234567890987654321-".getBytes();
     private Context context;
     private UsbManager manager;
     private UsbDevice targetDevice;
@@ -77,7 +79,6 @@ public class CH340xSerialHelper implements MsgSender {
     };
 
     public CH340xSerialHelper(Context context, OnDataAvailableListener listener) {
-        Log.d(TAG, "init  HEAD=" + bytesToHexString(HEAD));
         this.context = context;
         this.listener = listener;
         manager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
@@ -136,6 +137,7 @@ public class CH340xSerialHelper implements MsgSender {
         OnDataAvailableListener listener;
         private ImageDecoder imageDecoder;
         private ByteArrayBuffer buffer;
+        private FileInputStream fileInputStream;
         private FileOutputStream fileOutputStream;
 
         public Reader(UsbSerialDevice usbSerialDevice, OnDataAvailableListener listener) {
@@ -144,10 +146,15 @@ public class CH340xSerialHelper implements MsgSender {
             buffer = new ByteArrayBuffer();
             usbSerialDevice.read(this);
             imageDecoder = new ImageDecoder(listener);
-            File file = new File(context.getCacheDir(), System.currentTimeMillis() + ".bins");
+            File file = new File(context.getCacheDir(), "mjpeg.stream");
             try {
+                if (file.exists()) {
+                    file.delete();
+                }
+                file.createNewFile();
+                fileInputStream = new FileInputStream(file);
                 fileOutputStream = new FileOutputStream(file);
-            } catch (FileNotFoundException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -156,12 +163,18 @@ public class CH340xSerialHelper implements MsgSender {
         public void run() {
             while (run) {
                 try {
-                    findHead(buffer, HEAD);
-                    int read = buffer.read();
-                    byte[] bytes = new byte[read];
-                    int read1 = buffer.read(bytes);
+                    Utils.findHead(fileInputStream);
+                    byte[] bytes1 = new byte[4];
+                    int read = fileInputStream.read(bytes1);
+                    int len = Utils.byteArrayToInt(bytes1, 0);
+                    while (fileInputStream.available() < len) {
+
+                    }
+                    byte[] bytes = new byte[len];
+                    int read1 = fileInputStream.read(bytes);
                     imageDecoder.add(bytes);
-                } catch (IOException e) {
+                    Thread.sleep(16);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -174,7 +187,6 @@ public class CH340xSerialHelper implements MsgSender {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            buffer.put(data);
         }
     }
 
@@ -202,8 +214,6 @@ public class CH340xSerialHelper implements MsgSender {
                 }
             }
         }
-
-
     }
 
     private int findSequence(byte[] data, byte[] mSequence) {

@@ -1,5 +1,8 @@
 package com.android.handshankapplication;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public class Utils {
     public static int byteArrayToInt(byte[] b, int off) {
         return b[off + 3] & 0xFF |
@@ -72,5 +75,32 @@ public class Utils {
         }
 
         return bytes;
+    }
+
+    public static final byte[] HEAD = "-123454321-".getBytes();
+
+    public static void findHead(InputStream stream) throws IOException {
+        boolean find = false;
+        while (!find) {
+            byte[] bytes = new byte[1];
+            stream.read(bytes);
+            if (bytes[0] == HEAD[0]) {
+                boolean match = false;
+                for (int i = 1; i < HEAD.length; i++) {
+                    byte[] by = new byte[1];
+                    stream.read(by);
+                    if (by[0] == HEAD[i]) {
+                        match = true;
+                    } else {
+                        bytes = by;
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    find = true;
+                }
+            }
+        }
     }
 }
