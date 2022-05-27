@@ -162,7 +162,7 @@ public class DeviceFinder implements MsgSender {
 //            bufferedInputStream = new BufferedInputStream(inputStream);
             outputStream = usbSerialDevice.getOutputStream();
 //            outputStream.setTimeout(9914100);
-            imageDecoder = new ImageDecoder(listener);
+            imageDecoder = new ImageDecoder(listener, 3);
         }
 
         @Override
@@ -193,7 +193,7 @@ public class DeviceFinder implements MsgSender {
 
                             }
                             byte[] bytes = new byte[4];
-                            int ret = inputStream.read(bytes,0,4);
+                            int ret = inputStream.read(bytes, 0, 4);
                             Log.d(TAG, "run: ret ---------- " + ret);
                             if (ret != -1) {
                                 int dataLens = Utils.byteArrayToInt(bytes, 0);

@@ -14,7 +14,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-public class Reader extends Thread implements UsbSerialInterface.UsbReadCallback {
+public class Reader extends Thread {
     OnDataAvailableListener listener;
     private ImageDecoder imageDecoder;
     private FileInputStream fileOutputStream;
@@ -22,7 +22,7 @@ public class Reader extends Thread implements UsbSerialInterface.UsbReadCallback
 
     public Reader(Context context, OnDataAvailableListener listener) {
         this.listener = listener;
-        imageDecoder = new ImageDecoder(listener);
+        imageDecoder = new ImageDecoder(listener, 3);
         File file = new File(context.getCacheDir(), "mjpeg.stream");
         try {
             fileOutputStream = new FileInputStream(file);
@@ -42,14 +42,10 @@ public class Reader extends Thread implements UsbSerialInterface.UsbReadCallback
                 byte[] bytes = new byte[i];
                 int read1 = fileOutputStream.read(bytes);
                 imageDecoder.add(bytes);
-                Thread.sleep(150);
+                Thread.sleep(100);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    @Override
-    public void onReceivedData(byte[] data) {
     }
 }

@@ -145,7 +145,7 @@ public class CH340xSerialHelper implements MsgSender {
             this.listener = listener;
             buffer = new ByteArrayBuffer();
             usbSerialDevice.read(this);
-            imageDecoder = new ImageDecoder(listener);
+            imageDecoder = new ImageDecoder(listener, 3);
             File file = new File(context.getCacheDir(), "mjpeg.stream");
             try {
                 if (file.exists()) {

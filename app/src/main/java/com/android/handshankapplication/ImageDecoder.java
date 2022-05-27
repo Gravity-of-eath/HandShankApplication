@@ -7,6 +7,8 @@ import android.util.Pair;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -17,14 +19,21 @@ public class ImageDecoder {
     private int index = 0;
     private OnDataAvailableListener listener;
     private boolean run = true;
-    private Decoder decoderA, decoderB;
+    private List<Decoder> decoders = new ArrayList<>();
 
-    public ImageDecoder(OnDataAvailableListener listener) {
+    public ImageDecoder(OnDataAvailableListener listener, int workerNum) {
         this.listener = listener;
-        decoderA = new Decoder("decoderA");
-        decoderA.start();
-        decoderB = new Decoder("decoderB");
-        decoderB.start();
+        for (int i = 0; i < workerNum; i++) {
+            Decoder decoder = new Decoder("decoder--" + i);
+            decoder.start();
+            decoders.add(decoder);
+        }
+    }
+
+    public void release() {
+        for (Decoder d : decoders) {
+            d.stop();
+        }
     }
 
     public void add(byte[] data) {
